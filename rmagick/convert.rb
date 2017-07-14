@@ -1,15 +1,27 @@
+# convert.rb
+# 
+##### run
+# 
+# $ ruby convert.rb
+# 
+
 require 'RMagick'
 
 files = Dir.glob('./sample2-v.jpg')
 files.each do |filename|
   original = Magick::Image.read(filename).first
+  image = original
   originWidth = original.columns
   originHeight = original.rows
+  originAspectW = originWidth / originHeight.to_f.round(3)
+  originAspectW = originAspectW > 1 ? 1 : originAspectW
+  originAspectH = originHeight / originWidth.to_f.round(3)
+  originAspectH = originAspectH > 1 ? 1 : originAspectH
   
   # 初期値
   width = 0
   height = 0
-  pos = 'center'
+  pos = ''
   aspectW = 1
   aspectH = 1
 
@@ -31,6 +43,10 @@ files.each do |filename|
 #  height = 400 # リサイズサイズ 縦幅 オリジナル画像サイズ以下
 #  pos = 'rightbelow' # クロップ位置
 
+  # 入力値例 ： hoge.jpg?w=400 → リサイズのみ行う
+#  width = 400 # リサイズサイズ 縦幅 オリジナル画像サイズ以下
+  
+  
   # 演算
   if width > 0 && height > 0 then
     aspectW = width / height.to_f.round(3)
@@ -60,7 +76,7 @@ files.each do |filename|
   puts pos
   
   # crop
-  if width > 0 && height > 0 then
+  if width > 0 && height > 0 && pos != '' then
     image = original.crop(grav, originNarrower * aspectW, originNarrower * aspectH)
   end
   
@@ -68,14 +84,12 @@ files.each do |filename|
   if width > 0 && originWidth >= width && height > 0 && originHeight >= height then
     image = image.resize(width, height)
   elsif width > 0 then
-    image = image.resize(width, width)
+    image = image.resize(width * originAspectW, width * originAspectH)
   elsif height > 0 then
-    image = image.resize(height, height)
+    image = image.resize(height * originAspectW, height * originAspectH)
   end
   
   # write
-  if width > 0 && height > 0 then
-    image.write('new.jpg')
-  end
+  image.write('new.jpg')
   
 end
